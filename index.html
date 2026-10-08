@@ -681,7 +681,7 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sa
 .spatial-toolbar{display:flex;align-items:center;gap:5px;padding:7px 2px 0;border-top:1px dashed #dce8e3;margin-top:7px;white-space:nowrap;overflow-x:auto;scrollbar-width:none}.spatial-toolbar::-webkit-scrollbar{display:none}.spatial-toolbtn{height:32px;min-width:34px;border:1px solid #cee1d8;border-radius:9px;background:#fff;color:#295c4c;display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:0 8px;font-size:10px;font-weight:800;cursor:pointer;flex:0 0 auto}.spatial-toolbtn:hover{background:#f1f8f4}.spatial-toolbtn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}.spatial-open-link{margin-left:auto;font-size:9.5px;font-weight:800;color:#137750;padding:7px 4px;flex:0 0 auto}
 .spatial-fullscreen{position:fixed;inset:0;z-index:10050;background:rgba(8,28,22,.91);display:none;padding:18px;align-items:center;justify-content:center}.spatial-fullscreen.open{display:flex}.spatial-fullscreen-panel{width:min(96vw,1280px);height:min(94vh,880px);background:#fff;border-radius:18px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 25px 80px rgba(0,0,0,.4)}.spatial-fullscreen-head{display:flex;justify-content:space-between;align-items:center;gap:15px;padding:12px 15px;border-bottom:1px solid #dfeae5}.spatial-fullscreen-head strong{display:block;font-size:16px}.spatial-fullscreen-head small{display:block;color:#60756e;margin-top:3px}.spatial-fullscreen-head button{width:38px;height:38px;border-radius:50%;border:1px solid #d8e5df;background:#fff;font-size:26px;color:#31594c;cursor:pointer}.spatial-fullscreen-map{flex:1;min-height:0;background:linear-gradient(180deg,#eef8fb,#f8fcfd);display:flex;align-items:center;justify-content:center;overflow:hidden}.spatial-fullscreen-map svg{width:100%;height:100%;max-height:none!important;touch-action:none;cursor:grab}.spatial-fullscreen-map svg.is-panning{cursor:grabbing}.spatial-map-wrap svg{cursor:grab;touch-action:none}.spatial-map-wrap svg.is-panning{cursor:grabbing}.spatial-toolbar-fs{justify-content:center;padding:9px 12px;margin:0;border-top:1px solid #dfeae5;background:#fbfefd;overflow:visible}
 @media(max-width:900px){.spatial-card{min-height:430px!important}.spatial-map-title{flex-direction:column!important}.spatial-filters{width:100%;justify-content:flex-start}.spatial-filters select{flex:1;min-width:0;height:38px;font-size:11.5px}.spatial-map-wrap{min-height:350px!important}.spatial-map-wrap svg{min-height:340px!important;max-height:390px!important}.spatial-toolbar{gap:4px}.spatial-toolbtn{height:34px;padding:0 7px}.spatial-open-link{font-size:9px}.spatial-legend{width:155px;font-size:8px}.spatial-map-status{max-width:145px;font-size:7.5px}.spatial-fullscreen{padding:6px}.spatial-fullscreen-panel{width:100%;height:100%;border-radius:12px}.spatial-fullscreen-head{padding:10px 11px}.spatial-fullscreen-head strong{font-size:14px}}
-@media(max-width:480px){.spatial-card{padding:9px!important}.spatial-map-wrap{min-height:370px!important}.spatial-map-wrap svg{min-height:360px!important}.spatial-toolbtn span{display:none}.spatial-toolbtn:nth-child(1) span,.spatial-toolbtn:nth-child(2) span{display:inline}.spatial-open-link{margin-left:2px}.spatial-legend{left:6px;bottom:6px;width:145px;padding:6px}.spatial-map-status{right:6px;bottom:6px}.spatial-toolbar{justify-content:flex-start}.spatial-fullscreen-map svg{min-height:0!important}}
+@media(max-width:480px){.spatial-card{padding:9px!important}.spatial-map-wrap{min-height:370px!important}.spatial-map-wrap svg{min-height:360px!important}.spatial-toolbtn span{display:none}.spatial-toolbtn:nth-child(1) span,.spatial-toolbtn:nth-child(2) span{display:inline}.spatial-legend{left:6px;bottom:6px;width:145px;padding:6px}.spatial-map-status{right:6px;bottom:6px}.spatial-toolbar{justify-content:center}.spatial-fullscreen-map svg{min-height:0!important}}
 </style></head>
 <body>
 <div class="shell">
@@ -710,7 +710,7 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sa
 <button class="spatial-toolbtn" data-spatial-act="zoomin" title="Zoom +" type="button"><svg viewbox="0 0 24 24"><circle cx="10" cy="10" r="6"></circle><path d="M14.5 14.5 21 21M10 7v6M7 10h6"></path></svg></button>
 <button class="spatial-toolbtn" data-spatial-act="zoomout" title="Zoom -" type="button"><svg viewbox="0 0 24 24"><circle cx="10" cy="10" r="6"></circle><path d="M14.5 14.5 21 21M7 10h6"></path></svg></button>
 <button class="spatial-toolbtn" data-spatial-act="reset" title="Resetar" type="button"><svg viewbox="0 0 24 24"><path d="M4 7v5h5M5.4 16A8 8 0 1 0 6 6l-2 2"></path></svg></button>
-<a class="spatial-open-link" href="vigilancia/" rel="noopener" target="_blank">Abrir Vigilância ↗</a>
+
 </div></div>
 <div class="stats-column">
 <div class="box green"><div class="stat-head"><div class="stat-ico">📊</div>Casos notificados</div><div class="stat-val">220.150</div><div class="stat-sub">acidentes botrópicos</div></div>
@@ -930,7 +930,58 @@ function resetSvg(svg){svg.setAttribute('viewBox','0 0 580 540')}
 function svgPointFromClient(svg,clientX,clientY){const rect=svg.getBoundingClientRect();const vb=(svg.getAttribute('viewBox')||'0 0 580 540').split(/\s+/).map(Number);const [x,y,w,h]=vb;return {x:x+(clientX-rect.left)*(w/Math.max(1,rect.width)),y:y+(clientY-rect.top)*(h/Math.max(1,rect.height))};}
 function zoomAtPoint(svg,factor,clientX,clientY){const vb=(svg.getAttribute('viewBox')||'0 0 580 540').split(/\s+/).map(Number);let [x,y,w,h]=vb;const p=svgPointFromClient(svg,clientX,clientY);let nw=Math.max(120,Math.min(580,w*factor));let nh=nw*(540/580);const rx=(p.x-x)/w,ry=(p.y-y)/h;let nx=p.x-rx*nw,ny=p.y-ry*nh;const maxX=580-nw,maxY=540-nh;nx=Math.max(0,Math.min(maxX,nx));ny=Math.max(0,Math.min(maxY,ny));svg.setAttribute('viewBox',`${nx} ${ny} ${nw} ${nh}`);}
 function panSvg(svg,dxPx,dyPx){const rect=svg.getBoundingClientRect();const vb=(svg.getAttribute('viewBox')||'0 0 580 540').split(/\s+/).map(Number);let [x,y,w,h]=vb;let nx=x-dxPx*(w/Math.max(1,rect.width)),ny=y-dyPx*(h/Math.max(1,rect.height));nx=Math.max(0,Math.min(580-w,nx));ny=Math.max(0,Math.min(540-h,ny));svg.setAttribute('viewBox',`${nx} ${ny} ${w} ${h}`);}
-function attachMapInteractions(svg){if(!svg||svg.dataset.navBound==='1')return;svg.dataset.navBound='1';let dragging=false,lastX=0,lastY=0,pid=null;svg.addEventListener('wheel',e=>{e.preventDefault();zoomAtPoint(svg,e.deltaY<0?.84:1.19,e.clientX,e.clientY);},{passive:false});svg.addEventListener('pointerdown',e=>{if(e.button!==0&&e.pointerType==='mouse')return;dragging=true;pid=e.pointerId;lastX=e.clientX;lastY=e.clientY;svg.classList.add('is-panning');try{svg.setPointerCapture(pid)}catch(_){}});svg.addEventListener('pointermove',e=>{if(!dragging||e.pointerId!==pid)return;const dx=e.clientX-lastX,dy=e.clientY-lastY;lastX=e.clientX;lastY=e.clientY;panSvg(svg,dx,dy);});const stop=e=>{if(!dragging)return;dragging=false;svg.classList.remove('is-panning');try{if(pid!=null&&svg.hasPointerCapture(pid))svg.releasePointerCapture(pid)}catch(_){}pid=null;};svg.addEventListener('pointerup',stop);svg.addEventListener('pointercancel',stop);svg.addEventListener('lostpointercapture',stop);}
+function attachMapInteractions(svg){
+  if(!svg||svg.dataset.navBound==='1')return;
+  svg.dataset.navBound='1';
+  const pts=new Map();
+  let lastPan=null,lastPinchDist=null,lastPinchCenter=null;
+  const point=e=>({x:e.clientX,y:e.clientY});
+  const center=(a,b)=>({x:(a.x+b.x)/2,y:(a.y+b.y)/2});
+  const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+  function resetGestureState(){
+    const arr=[...pts.values()];
+    if(arr.length===1){lastPan=arr[0];lastPinchDist=null;lastPinchCenter=null;}
+    else if(arr.length>=2){lastPan=null;lastPinchDist=dist(arr[0],arr[1]);lastPinchCenter=center(arr[0],arr[1]);}
+    else{lastPan=null;lastPinchDist=null;lastPinchCenter=null;svg.classList.remove('is-panning');}
+  }
+  svg.addEventListener('wheel',e=>{e.preventDefault();zoomAtPoint(svg,e.deltaY<0?.84:1.19,e.clientX,e.clientY);},{passive:false});
+  svg.addEventListener('pointerdown',e=>{
+    if(e.pointerType==='mouse'&&e.button!==0)return;
+    if(e.pointerType==='touch')e.preventDefault();
+    pts.set(e.pointerId,point(e));
+    try{svg.setPointerCapture(e.pointerId)}catch(_){}
+    svg.classList.add('is-panning');
+    resetGestureState();
+  });
+  svg.addEventListener('pointermove',e=>{
+    if(!pts.has(e.pointerId))return;
+    if(e.pointerType==='touch')e.preventDefault();
+    pts.set(e.pointerId,point(e));
+    const arr=[...pts.values()];
+    if(arr.length===1){
+      const p=arr[0];
+      if(lastPan)panSvg(svg,p.x-lastPan.x,p.y-lastPan.y);
+      lastPan=p;lastPinchDist=null;lastPinchCenter=null;
+    }else if(arr.length>=2){
+      const a=arr[0],b=arr[1],c=center(a,b),d=dist(a,b);
+      if(lastPinchCenter)panSvg(svg,c.x-lastPinchCenter.x,c.y-lastPinchCenter.y);
+      if(lastPinchDist&&d>0){
+        const factor=lastPinchDist/d;
+        zoomAtPoint(svg,factor,c.x,c.y);
+      }
+      lastPinchCenter=c;lastPinchDist=d;lastPan=null;
+    }
+  },{passive:false});
+  const stop=e=>{
+    if(!pts.has(e.pointerId))return;
+    pts.delete(e.pointerId);
+    try{if(svg.hasPointerCapture(e.pointerId))svg.releasePointerCapture(e.pointerId)}catch(_){}
+    resetGestureState();
+  };
+  svg.addEventListener('pointerup',stop);
+  svg.addEventListener('pointercancel',stop);
+  svg.addEventListener('lostpointercapture',stop);
+}
 async function downloadSvg(svg){const clone=svg.cloneNode(true);clone.setAttribute('xmlns','http://www.w3.org/2000/svg');clone.setAttribute('width','1600');clone.setAttribute('height','1490');const bg=document.createElementNS('http://www.w3.org/2000/svg','rect');bg.setAttribute('x','0');bg.setAttribute('y','0');bg.setAttribute('width','580');bg.setAttribute('height','540');bg.setAttribute('fill','#f7fbf9');clone.insertBefore(bg,clone.firstChild);const xml=new XMLSerializer().serializeToString(clone);const blob=new Blob([xml],{type:'image/svg+xml;charset=utf-8'}),url=URL.createObjectURL(blob),img=new Image();img.onload=()=>{const c=document.createElement('canvas');c.width=1600;c.height=1490;const ctx=c.getContext('2d');ctx.fillStyle='#f7fbf9';ctx.fillRect(0,0,c.width,c.height);ctx.drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(url);const a=document.createElement('a');a.href=c.toDataURL('image/png');a.download=`SerpentIA_clima_casos_${yearEl.value}_${String(monthEl.value).padStart(2,'0')}.png`;a.click();};img.src=url;}
 function syncFullscreen(){const fsMap=document.getElementById('homeSpatialFsMap');const src=document.getElementById('homeSpatialSvg');fsMap.innerHTML='';const clone=src.cloneNode(true);clone.id='homeSpatialSvgFs';clone.dataset.navBound='';clone.setAttribute('tabindex','0');clone.setAttribute('viewBox',src.getAttribute('viewBox')||'0 0 580 540');fsMap.appendChild(clone);attachMapInteractions(clone);document.getElementById('homeSpatialFsSubtitle').textContent=`${monthName()} de ${yearEl.value} · precipitação por UF e casos por município`;}
 function openFullscreen(){const m=document.getElementById('homeSpatialFullscreen');m.classList.add('open');m.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';syncFullscreen();requestAnimationFrame(()=>{const svg=document.getElementById('homeSpatialSvgFs');if(svg){svg.dataset.navBound='';attachMapInteractions(svg);try{svg.focus({preventScroll:true})}catch(_){}}})}
