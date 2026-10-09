@@ -868,6 +868,33 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sa
   }
 }
 </style>
+
+<style>
+/* === v2.7 ajustes solicitados: perfil compacto + cores dos módulos === */
+.module.green{
+  background:#eef7f2!important;
+  border-color:#d7e8df!important;
+}
+.module.blue{
+  background:#edf8fd!important;
+  border-color:#d5e9f2!important;
+}
+.module.green .module-icon{background:#e2f3ea!important;}
+.module.blue .module-icon{background:#e2f3fa!important;}
+.module.green .tag{background:#e2f3ea!important;}
+.module.blue .tag{background:#e2f3fa!important;}
+
+
+<style>
+/* === v2.7 indicadores climáticos no resumo da página inicial === */
+.stats-column .box.rain{color:#2f80a8}
+.stats-column .box.rain .stat-ico{background:#e8f6fb}
+.stats-column .box.temp{color:#d98b2b}
+.stats-column .box.temp .stat-ico{background:#fff4df}
+.stats-column .box.climate-relation .stat-val{font-size:23px!important;margin-top:4px!important}
+.stats-column .box.climate-relation .stat-sub{font-size:9.6px;line-height:1.25}
+</style>
+</style>
 </head>
 <body>
 <div class="shell">
@@ -906,7 +933,9 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sa
 <div class="box red"><div class="stat-head"><div class="stat-ico">🚨</div>Casos graves</div><div class="stat-val">16.284</div><div class="stat-sub">7,4% do total</div></div>
 <div class="box green"><div class="stat-head"><div class="stat-ico">💉</div>Uso de soroterapia</div><div class="stat-val">194.781</div><div class="stat-sub">88,5% dos casos</div></div>
 <div class="box amber"><div class="stat-head"><div class="stat-ico">📅</div>Pico sazonal</div><div class="stat-val">Março</div><div class="stat-sub">10.587 casos no mês de maior carga</div></div>
-<div class="box neutral stat-combo"><div class="stat-head"><div class="stat-ico">📍</div>Perfil de maior concentração</div><div class="stat-val"><strong>Maior concentração:</strong> <span class="plain">Pará</span></div><div class="stat-sub">46.643 casos no recorte atual.</div><div class="male">👨 77,6% masculinos</div><div class="stat-sub">Faixa etária modal: 20–39.</div></div>
+<div class="box neutral"><div class="stat-head"><div class="stat-ico">📍</div>Maior concentração</div><div class="stat-val"><span class="plain">Pará</span></div><div class="stat-sub">46.643 casos no recorte atual.</div></div>
+<div class="box rain climate-relation"><div class="stat-head"><div class="stat-ico">🌧️</div>Casos × chuva</div><div class="stat-val">65,8%</div><div class="stat-sub">dos casos em meses chuvosos</div></div>
+<div class="box temp climate-relation"><div class="stat-head"><div class="stat-ico">🌡️</div>Casos × temperatura</div><div class="stat-val">24,7%</div><div class="stat-sub">mais casos, em média, nos 6 meses mais quentes</div></div>
 </div>
 </div>
 </section>
@@ -937,7 +966,7 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sa
 <div class="pesa-controls">
 <input aria-label="Buscar hospital, cidade ou estado" class="pesa-search" id="pesaSearch" placeholder="Buscar hospital, cidade ou UF..." type="search"/>
 <button class="locate-btn" id="pesaLocate" type="button">◎ Usar minha localização</button>
-<a class="official-list-btn" href="https://www.gov.br/saude/pt-br/assuntos/saude-de-a-a-z/a/animais-peconhentos/hospitais-de-referencia" rel="noopener" target="_blank">Lista oficial do Ministério ↗</a>
+<a class="official-list-btn" href="https://www.gov.br/saude/pt-br/assuntos/saude-de-a-a-z/a/animais-peconhentos/hospitais-de-referencia" rel="noopener" target="_blank">Lista oficial do Ministério da Saúde ↗</a>
 </div>
 <div class="pesa-content"><div class="pesa-results pesa-results-only" id="pesaResults"><div class="pesa-status">Carregando dados das unidades de saúde com soro antiveneno…</div></div></div><div class="pesa-pager" id="pesaPager"><button class="pesa-page-btn" id="pesaPrev" type="button">← Anterior</button><span class="pesa-counter" id="pesaCounter">1 de 1</span><button class="pesa-page-btn" id="pesaNext" type="button">Próxima →</button></div>
 </div>
