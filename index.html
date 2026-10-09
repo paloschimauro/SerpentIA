@@ -811,10 +811,12 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sa
 </style>
 
 <style>
-/* === v2.7 ajustes solicitados: emoji mobile + bolhas sem contorno === */
+/* === v2.7 ajuste visual: bolhas com borda branca discreta === */
 #homeCaseBubbleLayer circle{
-  stroke:none !important;
-  stroke-width:0 !important;
+  stroke:#fff !important;
+  stroke-width:.65 !important;
+  stroke-opacity:.72 !important;
+  vector-effect:non-scaling-stroke !important;
 }
 @media (max-width:640px){
   .pill-row .pill:nth-child(2) .pi{
