@@ -242,6 +242,35 @@ main{padding:16px 34px 26px;background:linear-gradient(180deg,#f8fcfe 0%,#f2f9fc
 .timeline-point b{display:block;color:#145c7a;margin-bottom:5px}.timeline-point span{font-size:13px;line-height:1.45;color:#5b727c}
 @media(max-width:1050px){.metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.skin-grid,.systemic-grid,.reaction-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.timeline-clinical{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:640px){.accident-context,.local-assessment,.systemic-assessment,.serum-reaction{padding:14px}.metric-grid,.skin-grid,.systemic-grid,.reaction-grid,.timeline-clinical{grid-template-columns:1fr}.clinical-alert{font-size:13px}}
+
+</style>
+<style id="clinical-v27-no-autoscroll-mobile-tree">
+/* v2.7 — evita quebra/overflow dos rótulos das etapas em telas pequenas. */
+@media (max-width:640px){
+  .tree-step{flex-basis:136px!important;min-width:136px!important;}
+  .tree-step[data-step="2"]{flex-basis:158px!important;min-width:158px!important;}
+  .tree-step b{font-size:10.6px!important;line-height:1.15!important;overflow-wrap:normal!important;word-break:normal!important;}
+}
+@media (max-width:420px){
+  .tree-step{flex-basis:132px!important;min-width:132px!important;}
+  .tree-step[data-step="2"]{flex-basis:156px!important;min-width:156px!important;}
+}
+</style>
+
+<style id="clinical-alert-standardization">
+/* v2.7 - padronizacao visual das caixas de aviso da avaliacao clinica */
+.clinical-alert{
+  margin-top:10px!important;
+  padding:11px 12px!important;
+  border-radius:14px!important;
+  font-size:11px!important;
+  line-height:1.5!important;
+  font-weight:400!important;
+}
+.clinical-alert strong{font-size:inherit!important;line-height:inherit!important;font-weight:850!important}
+@media(max-width:640px){
+  .clinical-alert{font-size:11.5px!important;padding:11px 12px!important}
+}
 </style>
 </head>
 <body>
@@ -270,7 +299,7 @@ main{padding:16px 34px 26px;background:linear-gradient(180deg,#f8fcfe 0%,#f2f9fc
 <div class="decision-main">
 <div aria-label="Etapas do fluxo clínico" class="tree">
 <button class="active tree-step" data-step="1"><span class="bubble">1</span><b>Reconhecer</b></button>
-<button class="tree-step" data-step="2"><span class="bubble">2</span><b>Envenenamento?</b></button>
+<button class="tree-step" data-step="2"><span class="bubble">2</span><b>Envenenamento</b></button>
 <button class="tree-step" data-step="3"><span class="bubble">3</span><b>Fenótipo</b></button>
 <button class="tree-step" data-step="4"><span class="bubble">4</span><b>Gravidade</b></button>
 <button class="tree-step" data-step="5"><span class="bubble">5</span><b>Exames</b></button>
@@ -354,7 +383,7 @@ main{padding:16px 34px 26px;background:linear-gradient(180deg,#f8fcfe 0%,#f2f9fc
 <div class="serum-reaction"><h4>⚠️ Vigilância de reação à soroterapia</h4><p class="assessment-note">Registre sinais durante a infusão e nas primeiras horas. Reações importantes exigem interrupção temporária, tratamento imediato e retomada do antiveneno após remissão conforme avaliação clínica.</p><div class="reaction-grid">
 <label class="check"><input class="serum-reaction-sign" type="checkbox" value="urticaria"/><span>Urticária/prurido</span></label><label class="check"><input class="serum-reaction-sign" type="checkbox" value="nausea"/><span>Náuseas/vômitos</span></label><label class="check"><input class="serum-reaction-sign" type="checkbox" value="tachy"/><span>Taquicardia/taquipneia</span></label><label class="check"><input class="serum-reaction-sign" type="checkbox" value="broncho"/><span>Broncoespasmo/dispneia</span></label><label class="check"><input class="serum-reaction-sign" type="checkbox" value="stridor"/><span>Rouquidão/estridor</span></label><label class="check"><input class="serum-reaction-sign" type="checkbox" value="hypotension"/><span>Hipotensão/choque</span></label><label class="check"><input class="serum-reaction-sign" type="checkbox" value="anaphylaxis"/><span>Anafilaxia</span></label>
 </div><div class="clinical-alert" id="serumReactionAlert">Sem reação registrada.</div></div>
-<div class="final-plan"><h4>📋 Plano personalizado do caso</h4><ul id="personalPlan"><li>Complete as etapas anteriores para gerar o plano clínico.</li></ul><div class="plan-alert">Este módulo organiza recomendações e alertas para apoio à decisão. A conduta deve ser confirmada pelo profissional responsável, considerando avaliação presencial, protocolo institucional, disponibilidade de antiveneno e evolução do paciente.</div></div><aside aria-live="polite" class="case-summary"><h3>🧭 Resumo da decisão</h3><div class="summary-grid"><div class="summary-row"><span>Grupo</span><strong id="sumSnake">Não selecionado</strong></div><div class="summary-row"><span>Envenenamento</span><strong id="sumEnvenoming">Não avaliado</strong></div><div class="summary-row"><span>Gravidade</span><strong id="sumSeverity">—</strong></div><div class="summary-row"><span>Antiveneno</span><strong id="sumSerum">—</strong></div><div class="summary-row"><span>Dose</span><strong id="sumDose">—</strong></div><div class="summary-row"><span>Alertas</span><strong id="sumRisks">—</strong></div><div class="summary-row"><span>Observação</span><strong id="sumMonitor">Definir após avaliação</strong></div></div><div class="summary-actions"><button class="btn" id="resetBtn">↺ Reiniciar</button><button class="btn primary" id="printBtn">🖨️ Imprimir resumo</button></div></aside>
+<div class="final-plan"><h4>📋 Plano personalizado do caso</h4><ul id="personalPlan"><li>Complete as etapas anteriores para gerar o plano clínico.</li></ul><div class="plan-alert">Este módulo organiza recomendações e alertas para apoio à decisão. A conduta deve ser confirmada pelo profissional responsável, considerando avaliação presencial, protocolo institucional, disponibilidade de antiveneno e evolução do paciente.</div></div><aside aria-live="polite" class="case-summary"><h3>🧭 Resumo da decisão</h3><div class="summary-grid"><div class="summary-row"><span>Grupo</span><strong id="sumSnake">Não selecionado</strong></div><div class="summary-row"><span>Envenenamento</span><strong id="sumEnvenoming">Não avaliado</strong></div><div class="summary-row"><span>Gravidade</span><strong id="sumSeverity">—</strong></div><div class="summary-row"><span>Antiveneno</span><strong id="sumSerum">—</strong></div><div class="summary-row"><span>Dose</span><strong id="sumDose">—</strong></div><div class="summary-row"><span>Alertas</span><strong id="sumRisks">—</strong></div><div class="summary-row"><span>Observação</span><strong id="sumMonitor">Definir após avaliação</strong></div></div><div class="summary-actions"><button class="btn" id="resetBtn">↺ Reiniciar</button><button class="btn primary" id="printBtn">🖨️ Imprimir relatório completo</button></div></aside>
 </div>
 </div>
 </div>
@@ -433,7 +462,7 @@ const DATA={
 };
 let state={snake:null,severity:null};
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-function jump(step){const el=$('#step'+step); if(el) el.scrollIntoView({behavior:'smooth',block:'start'}); $$('.tree-step').forEach(b=>b.classList.toggle('active',b.dataset.step==step));}
+function jump(step){$$('.tree-step').forEach(b=>b.classList.toggle('active',b.dataset.step==step));}
 function markProgress(){const max=state.snake?(state.severity?5:3):0; $$('.tree-step').forEach(b=>{const n=+b.dataset.step;b.classList.toggle('done',n<max);});}
 function selectSnake(key){state.snake=key;state.severity=null; const d=DATA[key]; $$('.snake-choice').forEach(b=>b.classList.toggle('active',b.dataset.snake===key)); $('#profile').classList.add('show');$('#profileImg').src=d.img;$('#profileImg').alt='Imagem ilustrativa - '+d.label;$('#profileTitle').textContent=d.label+' · '+d.genus;$('#profileText').textContent=d.profile;$('#profileChips').innerHTML=d.chips.map(x=>`<span class="chip">${x}</span>`).join('');
  $('#manifestations').innerHTML=`<div class="manifest-card"><h4>📍 Manifestações locais</h4><ul>${d.local.map(x=>`<li>${x}</li>`).join('')}</ul></div><div class="manifest-card system"><h4>🧠 Manifestações sistêmicas</h4><ul>${d.systemic.map(x=>`<li>${x}</li>`).join('')}</ul></div><div class="manifest-card warning" style="grid-column:1/-1"><h4>⚠️ Ponto de atenção</h4><ul><li>${d.warning}</li></ul></div>`;
@@ -458,7 +487,7 @@ updateSummary();
   function setResult(el,cls,html){if(!el)return;el.className='decision-result '+cls;el.innerHTML=html;}
   function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 
-  window.jump=function(step){const el=q('#step'+step); if(el) el.scrollIntoView({behavior:'smooth',block:'start'}); qa('.tree-step').forEach(b=>b.classList.toggle('active',b.dataset.step==step));};
+  window.jump=function(step){qa('.tree-step').forEach(b=>b.classList.toggle('active',b.dataset.step==step));};
   window.markProgress=function(){let max=0;if(state.snake)max=3;if(clinicalState.envenoming!=='Não avaliado')max=4;if(state.severity)max=5;if(clinicalState.labFlags.length)max=6;if(clinicalState.riskFlags.length)max=7;qa('.tree-step').forEach(b=>{const n=+b.dataset.step;b.classList.toggle('done',n<max);});};
 
   function renderGuidedSeverity(key){
@@ -565,7 +594,7 @@ updateSummary();
   qa('.serum-reaction-sign').forEach(x=>x.addEventListener('change',updateSerumReaction));
 
   // Replace reset button so the legacy listener does not leave new fields populated.
-  const oldReset=q('#resetBtn'); if(oldReset){const nr=oldReset.cloneNode(true);oldReset.replaceWith(nr);nr.addEventListener('click',()=>{state={snake:null,severity:null};qa('.snake-choice,.severity-card').forEach(x=>x.classList.remove('active'));q('#profile')?.classList.remove('show');q('#manifestations').innerHTML='<div class="manifest-card"><h4>Selecione um grupo acima</h4><p class="sub">As manifestações locais e sistêmicas aparecerão aqui.</p></div>';q('#severityGrid').innerHTML='';q('#severityHelp').textContent='Selecione primeiro o grupo clínico.';q('#labGrid').innerHTML='';q('#patternPanel')?.classList.remove('open');qa('input[type="checkbox"]').forEach(x=>x.checked=false);qa('input[type="number"]').forEach(x=>{x.value='';}); if(q('#labTC'))q('#labTC').value='';q('#hemoStatus').value='stable';q('#respStatus').value='normal';if(q('#biteSite'))q('#biteSite').value='';if(q('#biteSide'))q('#biteSide').value='';if(q('#walkedAfter'))q('#walkedAfter').value='no';if(q('#nodeStatus'))q('#nodeStatus').value='absent';['contextAlert','localAlert','systemicAlert','serumReactionAlert'].forEach(id=>{const e=q('#'+id);if(e)e.className='clinical-alert';});if(q('#contextAlert'))q('#contextAlert').textContent='Preencha quando essas informações estiverem disponíveis.';if(q('#localAlert'))q('#localAlert').textContent='Aguardando dados da avaliação local.';if(q('#systemicAlert'))q('#systemicAlert').textContent='Nenhuma manifestação adicional selecionada.';if(q('#serumReactionAlert'))q('#serumReactionAlert').textContent='Sem reação registrada.';q('#guidedSeverityFields').innerHTML='';setResult(q('#envenomingResult'),'info','<strong>Aguardando dados.</strong> Informe o tempo e os achados atuais.');setResult(q('#severitySuggestion'),'info','Selecione um grupo para iniciar.');q('#labResults').innerHTML='<div class="lab-result blue"><b>Aguardando resultados</b>Preencha os exames disponíveis e clique em “Interpretar resultados”.</div>';clinicalState={envenoming:'Não avaliado',labFlags:[],riskFlags:[],contextFlags:[],localFlags:[],systemicFlags:[],serumReactionFlags:[],monitor:'Definir após avaliação'};baseUpdateSummary();refreshSummary();refreshPlan();markProgress();document.querySelector('#primeiros-socorros')?.scrollIntoView({behavior:'smooth',block:'start'});});}
+  const oldReset=q('#resetBtn'); if(oldReset){const nr=oldReset.cloneNode(true);oldReset.replaceWith(nr);nr.addEventListener('click',()=>{state={snake:null,severity:null};qa('.snake-choice,.severity-card').forEach(x=>x.classList.remove('active'));q('#profile')?.classList.remove('show');q('#manifestations').innerHTML='<div class="manifest-card"><h4>Selecione um grupo acima</h4><p class="sub">As manifestações locais e sistêmicas aparecerão aqui.</p></div>';q('#severityGrid').innerHTML='';q('#severityHelp').textContent='Selecione primeiro o grupo clínico.';q('#labGrid').innerHTML='';q('#patternPanel')?.classList.remove('open');qa('input[type="checkbox"]').forEach(x=>x.checked=false);qa('input[type="number"]').forEach(x=>{x.value='';}); if(q('#labTC'))q('#labTC').value='';q('#hemoStatus').value='stable';q('#respStatus').value='normal';if(q('#biteSite'))q('#biteSite').value='';if(q('#biteSide'))q('#biteSide').value='';if(q('#walkedAfter'))q('#walkedAfter').value='no';if(q('#nodeStatus'))q('#nodeStatus').value='absent';['contextAlert','localAlert','systemicAlert','serumReactionAlert'].forEach(id=>{const e=q('#'+id);if(e)e.className='clinical-alert';});if(q('#contextAlert'))q('#contextAlert').textContent='Preencha quando essas informações estiverem disponíveis.';if(q('#localAlert'))q('#localAlert').textContent='Aguardando dados da avaliação local.';if(q('#systemicAlert'))q('#systemicAlert').textContent='Nenhuma manifestação adicional selecionada.';if(q('#serumReactionAlert'))q('#serumReactionAlert').textContent='Sem reação registrada.';q('#guidedSeverityFields').innerHTML='';setResult(q('#envenomingResult'),'info','<strong>Aguardando dados.</strong> Informe o tempo e os achados atuais.');setResult(q('#severitySuggestion'),'info','Selecione um grupo para iniciar.');q('#labResults').innerHTML='<div class="lab-result blue"><b>Aguardando resultados</b>Preencha os exames disponíveis e clique em “Interpretar resultados”.</div>';clinicalState={envenoming:'Não avaliado',labFlags:[],riskFlags:[],contextFlags:[],localFlags:[],systemicFlags:[],serumReactionFlags:[],monitor:'Definir após avaliação'};baseUpdateSummary();refreshSummary();refreshPlan();markProgress();});}
   refreshSummary();refreshPlan();markProgress();
 })();
 </script>
@@ -576,7 +605,6 @@ updateSummary();
  function activate(id,scroll){
   tabs.forEach(t=>{const on=t.dataset.protocol===id;t.classList.toggle('active',on);t.setAttribute('aria-selected',on?'true':'false');});
   panels.forEach(p=>p.classList.toggle('active',p.id===id));
-  if(scroll){const shell=document.querySelector('#protocolos .protocols-shell'); if(shell) shell.scrollIntoView({behavior:'smooth',block:'start'});}
  }
  tabs.forEach(t=>t.addEventListener('click',()=>activate(t.dataset.protocol,false)));
  window.openAO=function(id){activate(id,true)};
