@@ -548,7 +548,7 @@ updateSummary();
   function serumAbbreviations(serum){
     if(!serum) return '—';
     if(/^Sem antiveneno/i.test(serum)) return 'Sem antiveneno imediato';
-    const codes=[...serum.matchAll(/\((SABR|SABL|SABC|SAC|Saela)\)/gi)].map(m=>m[1].toUpperCase()==='SAELA'?'Saela':m[1].toUpperCase());
+    const codes=[...serum.matchAll(/\(\s*(SABR|SABL|SABC|SAC|Saela)\b(?=\s*[,;)])/gi)].map(m=>m[1].toUpperCase()==='SAELA'?'Saela':m[1].toUpperCase());
     return [...new Set(codes)].join(' / ') || serum;
   }
 </script>
