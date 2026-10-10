@@ -87,6 +87,43 @@
   .site-footer .right{text-align:left}
 }
 </style>
+
+<style id="serpentia-mobile-header-fix">
+/* === v2.7 correção do cabeçalho em iOS/mobile/tablet ===
+   Mantém logo e navegação como uma única unidade sticky e evita que
+   parte do cabeçalho fique acima do visual viewport ao retornar ao topo. */
+@media (max-width:1100px), (pointer:coarse){
+  html{
+    scroll-behavior:auto!important;
+  }
+  body{
+    overflow-x:hidden!important;
+  }
+  .shell{
+    overflow:visible!important;
+  }
+  .site-header{
+    position:-webkit-sticky!important;
+    position:sticky!important;
+    top:0!important;
+    z-index:500!important;
+    width:100%!important;
+    margin:0!important;
+    background:linear-gradient(180deg,#fff 0%,rgba(255,255,255,.985) 72%,rgba(245,251,248,.985) 100%)!important;
+    border-bottom:1px solid rgba(219,233,226,.78)!important;
+  }
+  .site-header .navbar{
+    position:relative!important;
+    width:100%!important;
+  }
+  .site-header .brand{
+    flex:0 0 auto!important;
+  }
+  .site-header .nav{
+    flex:0 0 auto!important;
+  }
+}
+</style>
 </head>
 <body><div class="shell"><header class="site-header">
 <div class="navbar">
