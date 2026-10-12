@@ -1001,6 +1001,12 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sa
 @media print{.site-header,.site-footer{display:none!important}.serpentia-summary-disclaimer{display:block!important;background:#fff!important;border:1px solid #777!important;color:#111!important;break-inside:avoid!important}}
 
 </style>
+
+<style id="serpentia-2-7-equal-summary-cards">
+/* Indicadores da pagina inicial: mesma altura para todos os cartoes, em qualquer viewport. */
+.stats-column { grid-auto-rows: 1fr; align-items: stretch; }
+.stats-column > .box { min-width: 0; height: 100%; }
+</style>
 </head>
 <body>
 <div class="shell">
@@ -1042,7 +1048,7 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sa
 <div class="box green"><div class="stat-head"><div class="stat-ico">💉</div>Uso de soroterapia</div><div class="stat-val">222.121</div><div class="stat-sub">86,8% dos casos</div></div>
 <div class="box amber"><div class="stat-head"><div class="stat-ico">📅</div>Pico sazonal</div><div class="stat-val">Março</div><div class="stat-sub">29.280 notificações no mês.</div></div>
 <div class="box neutral"><div class="stat-head"><div class="stat-ico">📍</div>Maior concentração</div><div class="stat-val"><span class="plain">Pará</span></div><div class="stat-sub">48.081 casos no período.</div></div>
-<div class="box rain climate-relation" title="143.722 de 246.693 casos com precipitação UF–mês válida. Mês chuvoso: precipitação acima da mediana da própria UF em 2016–2025, calculada sem arredondamento prévio. Associação ecológica; não demonstra causalidade."><div class="stat-head"><div class="stat-ico">🌧️</div>Casos × chuva</div><div class="stat-val">58,3%</div><div class="stat-sub">dos 246.693 casos com chuva UF–mês válida.<br>Mês chuvoso: chuva acima da mediana da UF (2016–2025).<br>Associação ecológica; não indica causalidade.</div></div>
+<div class="box rain climate-relation" title="143.722 de 246.693 casos com precipitação UF–mês válida. Mês chuvoso: precipitação acima da mediana da própria UF em 2016–2025, calculada sem arredondamento prévio. Associação ecológica; não demonstra causalidade."><div class="stat-head"><div class="stat-ico">🌧️</div>Casos × chuva</div><div class="stat-val">58,3%</div><div class="stat-sub">dos casos ocorreram em meses mais chuvosos.</div></div>
 <div class="box blue"><div class="stat-head"><div class="stat-ico">👤</div>Sexo masculino</div><div class="stat-val">77,7%</div><div class="stat-sub">dos casos são em homens.</div></div>
 <div class="box green stat-snake-type"><div class="stat-head"><div class="stat-ico">🐍</div>Botrópico</div><div class="stat-val">86%</div><div class="stat-sub">dos acidentes são por <em>Bothrops</em>.</div></div>
 <div class="box blue stat-age-group"><div class="stat-head"><div class="stat-ico">👥</div>Idade produtiva</div><div class="stat-val">20–39 anos</div><div class="stat-sub">32,9% dos casos.</div></div>
