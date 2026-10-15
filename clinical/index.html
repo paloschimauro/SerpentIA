@@ -311,7 +311,8 @@ main{padding:16px 34px 26px;background:linear-gradient(180deg,#f8fcfe 0%,#f2f9fc
 .references-disclosure{border:1px solid #dbe5ed;border-radius:18px;overflow:hidden;background:#fff;box-shadow:0 5px 20px rgba(12,35,56,.045)}
 .references-trigger{display:flex;align-items:center;justify-content:space-between;gap:18px;cursor:pointer;list-style:none;padding:20px 24px;transition:background .2s}
 .references-trigger::-webkit-details-marker{display:none}
-.references-trigger:hover{background:#f3f8fc}
+.references-trigger:hover{background:transparent}
+#protocolos .protocols-trigger p a{color:#0b7199;font-weight:800;text-decoration:underline;text-underline-offset:2px}
 .references-trigger .section-head{margin:0;padding:0;flex:1}
 .references-chevron{flex-shrink:0;display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:#eaf3fa;color:#246389;font-size:29px;line-height:1;transition:transform .2s}
 .references-disclosure[open] .references-chevron{transform:rotate(180deg)}
@@ -640,7 +641,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visi
   <div><h3>Aviso importante</h3><p>O SerpentIA Clinical apresenta sugestões informativas de gravidade, soroterapia, exames e monitoramento baseadas em protocolos de referência, sem validação clínica formal. Esta ferramenta não substitui o atendimento médico. A conduta adequada exige avaliação por profissional habilitado e observância dos protocolos vigentes.</p></div>
 </aside>
 <section class="section" id="protocolos"><div class="section-pad">
-<details class="protocols-disclosure"><summary class="protocols-trigger"><div class="section-head"><div class="section-title"><div class="section-icon">🗂️</div><div><h2>Protocolos complementares</h2><p>Consulta rápida de rotinas práticas para diagnóstico, exames, preparo e administração do antiveneno, seguimento, encaminhamento, alta, notificação e armazenamento.</p></div></div></div></summary><div class="protocols-shell">
+<details class="protocols-disclosure"><summary class="protocols-trigger"><div class="section-head"><div class="section-title"><div class="section-icon">🗂️</div><div><h2>Protocolos complementares</h2><p>Consulta rápida de rotinas práticas para diagnóstico, exames, preparo e administração do antiveneno, seguimento, encaminhamento, alta, notificação e armazenamento (<a href="https://www.saude.ms.gov.br/wp-content/uploads/2024/06/SAVING_PROTOCOLO_PT-BR_COMPLETO-1-JUNHO-2022-I.pdf" onclick="event.stopPropagation()"><strong>SAVING, 2022</strong></a>).</p></div></div></div></summary><div class="protocols-shell">
 <div aria-label="Protocolos complementares" class="protocol-tabs" role="tablist">
 <button aria-selected="true" class="protocol-tab active" data-protocol="ao1" role="tab">AO1 · Primeiros socorros</button>
 <button aria-selected="false" class="protocol-tab" data-protocol="ao2" role="tab">AO2 · Diagnóstico</button>
@@ -943,7 +944,7 @@ updateSummary();
     if(proof){const d=state.snake?DATA[state.snake]:null,ss=d?.severity.find(x=>x.id===state.severity);
       const conditions=ss?'Critérios descritos na categoria: '+ss.criteria:'Selecione a gravidade para consultar os critérios da categoria.';
       const confirmed=checked('#severityReviewed')?'Achados guiados confirmados pelo usuário.':'Classificação guiada não confirmada.';
-      proof.innerHTML='<strong>Base da referência:</strong> '+esc(conditions)+'<br/><strong>Rastreabilidade:</strong> '+esc(confirmed)+' As classificações, doses e recomendações devem ser conferidas nas fontes oficiais: <a href="https://www.gov.br/saude/pt-br/centrais-de-conteudo/publicacoes/svsa/animais-peconhentos/pcdt-dos-acidentes-ofidicos.pdf" rel="noopener noreferrer">PCDT · Ministério da Saúde</a> e <a href="https://www.saude.ms.gov.br/wp-content/uploads/2024/06/SAVING_PROTOCOLO_PT-BR_COMPLETO-1-JUNHO-2022-I.pdf" rel="noopener noreferrer">SAVING 2022</a>.';
+      proof.innerHTML='<strong>Base da referência:</strong> '+esc(conditions)+'<br/><strong>Rastreabilidade:</strong> '+esc(confirmed)+' As classificações, doses e recomendações devem ser conferidas nas fontes oficiais: <a href="https://www.gov.br/saude/pt-br/centrais-de-conteudo/publicacoes/svsa/animais-peconhentos/pcdt-dos-acidentes-ofidicos.pdf" rel="noopener noreferrer"><strong>PCDT · Ministério da Saúde, 2026</strong></a> e <a href="https://www.saude.ms.gov.br/wp-content/uploads/2024/06/SAVING_PROTOCOLO_PT-BR_COMPLETO-1-JUNHO-2022-I.pdf" rel="noopener noreferrer"><strong>SAVING, 2022</strong></a>.';
     }
     const wrapper=q('#priorAntivenomDetails');if(wrapper)wrapper.hidden=!before;
   }
