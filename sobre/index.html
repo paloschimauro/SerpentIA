@@ -1,5 +1,734 @@
 <!DOCTYPE html>
-<html lang="pt-BR"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/><meta name="theme-color" content="#12794f"/><title>Sobre o Projeto SerpentIA</title><style>
+<html lang="pt-BR"><head><meta charset="utf-8"/>
+<script id="serpentia-i18n-v3-controller">
+/* SerpentIA i18n v3: one-selection, full-initial-render translation and native Plotly labels.
+   The translated language is selected before the page is loaded; GTranslate is started
+   only after the Surveillance dashboard and its asynchronous datasets are ready.
+   No epidemiological values, geographic names or clinical rules are changed. */
+(function () {
+  'use strict';
+  if (window.SerpentIAI18n && window.SerpentIAI18n.version === 3) return;
+  const KEY = 'serpentia-site-language-v3';
+  const VALID = new Set(['pt', 'en', 'es']);
+  const NATIVE_SOURCE = 'pt';
+  const PLOT_SELECTOR = '.js-plotly-plot';
+  const isSurveillance = /(?:^|\/)vigilancia\/?(?:index\.html)?$/i.test(location.pathname) || !!document.getElementById('serpentiaPlotlyGz');
+  const readCookie = () => {
+    let cookieText = '';
+    try { cookieText = document.cookie || ''; } catch (_) { return null; }
+    const c = cookieText.match(/(?:^|;\s*)googtrans=([^;]*)/);
+    const m = c && decodeURIComponent(c[1]).match(/^\/pt\/(pt|en|es)$/);
+    return m ? m[1] : null;
+  };
+  const storageGet = () => { try { return localStorage.getItem(KEY); } catch (_) { return null; } };
+  const storageSet = value => { try { localStorage.setItem(KEY, value); } catch (_) {} };
+  const saved = storageGet();
+  const selected = VALID.has(saved) ? saved : (readCookie() || 'pt');
+  const lang = selected;
+  let plottingInstalled = false;
+  const pendingPlots = new Set();
+  let hasRenderedDashboard = !isSurveillance;
+  let hasRenderedAir = !isSurveillance;
+  const onReady = { dashboard: [], air: [] };
+  const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+  const afterFrame = () => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  const LANG_NAMES = { pt: 'Português (Brasil)', en: 'English (US)', es: 'Español' };
+
+  function setGoogleCookie(value) {
+    const expiry = value === 'pt' ? ';Max-Age=0' : ';Max-Age=31536000';
+    const cookie = value === 'pt' ? 'googtrans=' : 'googtrans=/pt/' + value;
+    try { document.cookie = cookie + ';Path=/;SameSite=Lax' + expiry; } catch (_) { return; }
+    // Remove potential previous domain-level cookies to avoid two contradictory googtrans values.
+    const host = location.hostname.toLowerCase();
+    if (host === 'serpentia.com.br' || host.endsWith('.serpentia.com.br')) {
+      try { document.cookie = cookie + ';Path=/;Domain=serpentia.com.br;SameSite=Lax' + expiry; } catch (_) {}
+    }
+  }
+  if (lang !== 'pt' || readCookie()) setGoogleCookie(lang);
+
+  function ready(type) {
+    if (type === 'dashboard') hasRenderedDashboard = true;
+    if (type === 'air') hasRenderedAir = true;
+    const callbacks = onReady[type].splice(0);
+    callbacks.forEach(f => f());
+  }
+  document.addEventListener('serpentia:dashboard-ready', () => ready('dashboard'));
+  document.addEventListener('serpentia:air-ready', () => ready('air'));
+  function waitReady(type, timeout) {
+    if ((type === 'dashboard' && hasRenderedDashboard) || (type === 'air' && hasRenderedAir)) return Promise.resolve();
+    return Promise.race([
+      new Promise(resolve => { onReady[type].push(resolve); }),
+      sleep(timeout)
+    ]);
+  }
+
+  // Preserve Plotly identifiers (geographic codes, point coordinates, locations, IDs).
+  // Only natural-language chart labels, month categories, hover text and annotations change.
+  const MONTHS = {
+    en: { Jan: 'Jan', Fev: 'Feb', Mar: 'Mar', Abr: 'Apr', Mai: 'May', Jun: 'Jun', Jul: 'Jul', Ago: 'Aug', Set: 'Sep', Out: 'Oct', Nov: 'Nov', Dez: 'Dec', Janeiro: 'January', Fevereiro: 'February', Março: 'March', Abril: 'April', Maio: 'May', Junho: 'June', Julho: 'July', Agosto: 'August', Setembro: 'September', Outubro: 'October', Novembro: 'November', Dezembro: 'December' },
+    es: { Jan: 'Ene', Fev: 'Feb', Mar: 'Mar', Abr: 'Abr', Mai: 'May', Jun: 'Jun', Jul: 'Jul', Ago: 'Ago', Set: 'Sep', Out: 'Oct', Nov: 'Nov', Dez: 'Dic', Janeiro: 'enero', Fevereiro: 'febrero', Março: 'marzo', Abril: 'abril', Maio: 'mayo', Junho: 'junio', Julho: 'julio', Agosto: 'agosto', Setembro: 'septiembre', Outubro: 'octubre', Novembro: 'noviembre', Dezembro: 'diciembre' }
+  };
+  // Longer technical phrases precede shorter phrases to preserve technical meaning.
+  const TERMS = {
+    en: {
+      'Distribuição espacial dos acidentes por serpentes peçonhentas': 'Spatial distribution of venomous snakebites',
+      'Casos em municípios com chuva válida': 'Cases in municipalities with valid rainfall data',
+      'Casos por 100 municípios–mês': 'Cases per 100 municipality-months',
+      'Casos por 100 municípios-mês': 'Cases per 100 municipality-months',
+      'Casos/100 municípios-mês': 'Cases/100 municipality-months',
+      'Casos/100 mun.-mês': 'Cases/100 municipality-months',
+      'IQAr indicativo de 24 h': 'Indicative 24-h air quality index',
+      'IQAr indicativo médio': 'Mean indicative air quality index',
+      'IQAr indicativo (pontos)': 'Indicative air quality index (points)',
+      'IQAr indisponível': 'Air quality index unavailable',
+      'IQAr indicativo': 'Indicative AQI',
+      'graves': 'severe cases',
+      'Precipitação observada': 'Observed precipitation',
+      'Precipitação média': 'Mean precipitation',
+      'Precipitação (mm)': 'Precipitation (mm)',
+      'Temperatura média (°C)': 'Mean temperature (°C)',
+      'Temperatura média': 'Mean temperature',
+      'Temperatura (°C)': 'Temperature (°C)',
+      'Umidade relativa (%)': 'Relative humidity (%)',
+      'Umidade relativa': 'Relative humidity',
+      'Casos notificados': 'Reported cases',
+      'casos notificados': 'reported cases',
+      'Casos graves (%)': 'Severe cases (%)',
+      'Casos graves': 'Severe cases',
+      'Número de notificações': 'Number of notifications',
+      'Número de casos': 'Number of cases',
+      'Chuva média (mm)': 'Mean rainfall (mm)',
+      'Chuva (mm)': 'Rainfall (mm)',
+      'Óbito pelo agravo notificado': 'Death due to reported condition',
+      'Óbito por outra causa': 'Death due to another cause',
+      'Óbito pelo agravo': 'Death due to reported condition',
+      'Óbito outra causa': 'Death due to another cause',
+      'Óbito agravo': 'Death due to envenoming',
+      'Uso de soroterapia': 'Antivenom use',
+      'Atendimento ≤ 3 h': 'Healthcare attendance ≤ 3 h',
+      'Faixa etária': 'Age group',
+      'Tipo de acidente': 'Snakebite type',
+      'Casos por sexo': 'Cases by sex',
+      'Mais chuvoso': 'Wetter',
+      'Mais seco': 'Drier',
+      'Mais quente': 'Warmer',
+      'Mais frio': 'Colder',
+      'Melhor ar': 'Better air',
+      'Pior ar': 'Worse air',
+      'Menos poluente': 'Less pollutant',
+      'Mais poluente': 'More pollutant',
+      'Sem dado ambiental válido': 'No valid environmental data',
+      'Sem dados': 'No data',
+      'Dados indisponíveis': 'Data unavailable',
+      'Fora do recorte selecionado': 'Outside selected area',
+      'fora do recorte': 'outside selected area',
+      'sem casos no recorte': 'no cases in selection',
+      'Ign/Branco': 'Unknown/blank',
+      'Em branco/IGN': 'Blank/unknown',
+      'Óbitos': 'Deaths',
+      'Letalidade': 'Case fatality',
+      'Gravidade': 'Severity',
+      'Desfecho': 'Outcome',
+      'Evolução': 'Outcome',
+      'Soroterapia': 'Antivenom',
+      'Precipitação': 'Precipitation',
+      'Temperatura': 'Temperature',
+      'Umidade': 'Humidity',
+      'Ignorado': 'Unknown',
+      'Masculino': 'Male',
+      'Feminino': 'Female',
+      'Leve': 'Mild',
+      'Moderado': 'Moderate',
+      'Grave': 'Severe',
+      'Cura': 'Recovered',
+      'Branca': 'White',
+      'Preta': 'Black',
+      'Amarela': 'Asian',
+      'Parda': 'Mixed race',
+      'Indigena': 'Indigenous',
+      'Indígena': 'Indigenous',
+      'Sim': 'Yes',
+      'Não': 'No',
+      'Menor': 'Lower',
+      'Maior': 'Higher',
+      'Casos': 'Cases',
+      'notificações': 'notifications',
+      'municípios–mês': 'municipality-months',
+      'municípios-mês': 'municipality-months',
+      'meses': 'months',
+      'dos casos': 'of cases',
+      'casos': 'cases',
+      'pontos': 'points',
+      'horas': 'hours',
+      'hora': 'hour',
+      'sem dado': 'no data',
+      'Estimada:': 'Estimated:',
+      'Observada:': 'Observed:',
+      'Indisponível': 'Unavailable',
+      'média de': 'average of',
+      'média estadual': 'state average',
+      'média municipal': 'municipal average',
+      'Média estadual': 'State average',
+      'Média histórica': 'Historical average',
+      'Chuva': 'Rainfall',
+      'Reanálise municipal SISAM': 'Municipal SISAM reanalysis',
+      'média': 'mean'
+    },
+    es: {
+      'Distribuição espacial dos acidentes por serpentes peçonhentas': 'Distribución espacial de accidentes ofídicos',
+      'Casos em municípios com chuva válida': 'Casos en municipios con datos válidos de precipitación',
+      'Casos por 100 municípios–mês': 'Casos por 100 municipios-mes',
+      'Casos por 100 municípios-mês': 'Casos por 100 municipios-mes',
+      'Casos/100 municípios-mês': 'Casos/100 municipios-mes',
+      'Casos/100 mun.-mês': 'Casos/100 municipios-mes',
+      'IQAr indicativo de 24 h': 'Índice indicativo de calidad del aire de 24 h',
+      'IQAr indicativo médio': 'Índice indicativo medio de calidad del aire',
+      'IQAr indicativo (pontos)': 'Índice indicativo de calidad del aire (puntos)',
+      'IQAr indisponível': 'Índice de calidad del aire no disponible',
+      'IQAr indicativo': 'ICA indicativo',
+      'Precipitação observada': 'Precipitación observada',
+      'Precipitação média': 'Precipitación media',
+      'Precipitação (mm)': 'Precipitación (mm)',
+      'Temperatura média (°C)': 'Temperatura media (°C)',
+      'Temperatura média': 'Temperatura media',
+      'Temperatura (°C)': 'Temperatura (°C)',
+      'Umidade relativa (%)': 'Humedad relativa (%)',
+      'Umidade relativa': 'Humedad relativa',
+      'Casos notificados': 'Casos notificados',
+      'casos notificados': 'casos notificados',
+      'Casos graves (%)': 'Casos graves (%)',
+      'Casos graves': 'Casos graves',
+      'Número de notificações': 'Número de notificaciones',
+      'Número de casos': 'Número de casos',
+      'Chuva média (mm)': 'Precipitación media (mm)',
+      'Chuva (mm)': 'Precipitación (mm)',
+      'Óbito pelo agravo notificado': 'Muerte por el evento notificado',
+      'Óbito por outra causa': 'Muerte por otra causa',
+      'Óbito pelo agravo': 'Muerte por el evento notificado',
+      'Óbito outra causa': 'Muerte por otra causa',
+      'Óbito agravo': 'Muerte por envenenamiento',
+      'Uso de soroterapia': 'Uso de antiveneno',
+      'Atendimento ≤ 3 h': 'Atención médica ≤ 3 h',
+      'Faixa etária': 'Grupo de edad',
+      'Tipo de acidente': 'Tipo de accidente ofídico',
+      'Casos por sexo': 'Casos por sexo',
+      'Mais chuvoso': 'Más lluvioso',
+      'Mais seco': 'Más seco',
+      'Mais quente': 'Más cálido',
+      'Mais frio': 'Más frío',
+      'Melhor ar': 'Mejor aire',
+      'Pior ar': 'Peor aire',
+      'Menos poluente': 'Menos contaminante',
+      'Mais poluente': 'Más contaminante',
+      'Sem dado ambiental válido': 'Sin datos ambientales válidos',
+      'Sem dados': 'Sin datos',
+      'Dados indisponíveis': 'Datos no disponibles',
+      'Fora do recorte selecionado': 'Fuera del área seleccionada',
+      'fora do recorte': 'fuera del área seleccionada',
+      'sem casos no recorte': 'sin casos en la selección',
+      'Ign/Branco': 'Ignorado/en blanco',
+      'Em branco/IGN': 'En blanco/ignorado',
+      'Óbitos': 'Muertes',
+      'Letalidade': 'Letalidad',
+      'Gravidade': 'Gravedad',
+      'Desfecho': 'Resultado',
+      'Evolução': 'Evolución',
+      'Soroterapia': 'Tratamiento con antiveneno',
+      'Precipitação': 'Precipitación',
+      'Temperatura': 'Temperatura',
+      'Umidade': 'Humedad',
+      'Ignorado': 'Ignorado',
+      'Masculino': 'Masculino',
+      'Feminino': 'Femenino',
+      'Leve': 'Leve',
+      'Moderado': 'Moderado',
+      'Grave': 'Grave',
+      'Cura': 'Recuperación',
+      'Branca': 'Blanca',
+      'Preta': 'Negra',
+      'Amarela': 'Asiática',
+      'Parda': 'Parda',
+      'Indigena': 'Indígena',
+      'Indígena': 'Indígena',
+      'Sim': 'Sí',
+      'Não': 'No',
+      'Menor': 'Menor',
+      'Maior': 'Mayor',
+      'Casos': 'Casos',
+      'notificações': 'notificaciones',
+      'municípios–mês': 'municipios-mes',
+      'municípios-mês': 'municipios-mes',
+      'meses': 'meses',
+      'dos casos': 'de los casos',
+      'casos': 'casos',
+      'pontos': 'puntos',
+      'horas': 'horas',
+      'hora': 'hora',
+      'sem dado': 'sin datos',
+      'Estimada:': 'Estimada:',
+      'Observada:': 'Observada:',
+      'Indisponível': 'No disponible',
+      'média de': 'media de',
+      'média estadual': 'promedio estatal',
+      'média municipal': 'promedio municipal',
+      'Média estadual': 'Promedio estatal',
+      'Média histórica': 'Promedio histórico',
+      'Chuva': 'Precipitación',
+      'Reanálise municipal SISAM': 'Reanálisis municipal SISAM',
+      'média': 'media'
+    }
+  };
+  const SHORT_EXACT = {
+    en: { '0–1 h':'0–1 h','1–3 horas':'1–3 hours','3–6 horas':'3–6 hours','6–12 horas':'6–12 hours','12–24 horas':'12–24 hours','24+ horas':'24+ hours','< 1 hora':'< 1 hour','0 a 1 horas':'0–1 hours','1 a 3 horas':'1–3 hours', '3 a 6 horas':'3–6 hours','6 a 12 horas':'6–12 hours','12 a 24 horas':'12–24 hours','24 e + horas':'24+ hours', 'IQAr (pontos)':'Indicative AQI (points)', 'Mês':'Month','Sexo':'Sex', 'Norte':'Norte', 'Nordeste':'Nordeste' },
+    es: { '0–1 h':'0–1 h','1–3 horas':'1–3 horas','3–6 horas':'3–6 horas','6–12 horas':'6–12 horas','12–24 horas':'12–24 horas','24+ horas':'24+ horas','< 1 hora':'< 1 hora','0 a 1 horas':'0–1 horas','1 a 3 horas':'1–3 horas','3 a 6 horas':'3–6 horas','6 a 12 horas':'6–12 horas','12 a 24 horas':'12–24 horas','24 e + horas':'24+ horas','IQAr (pontos)':'ICA indicativo (puntos)','Mês':'Mes','Sexo':'Sexo' }
+  };
+  const replaceCache = Object.create(null);
+  function safeRegex(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+  function makeReplacements(language) {
+    if (replaceCache[language]) return replaceCache[language];
+    const items = Object.entries(TERMS[language]).sort((a,b) => b[0].length-a[0].length);
+    replaceCache[language] = items.map(([oldValue,newValue]) => ({
+      regex: new RegExp('(?<![\\p{L}\\p{M}])' + safeRegex(oldValue) + '(?![\\p{L}\\p{M}])','gu'),
+      newValue
+    }));
+    return replaceCache[language];
+  }
+  function translateText(value, opts) {
+    if (lang === 'pt' || typeof value !== 'string' || !value) return value;
+    if ((opts && opts.month) || Object.prototype.hasOwnProperty.call(MONTHS[lang],value)) {
+      if (Object.prototype.hasOwnProperty.call(MONTHS[lang],value)) return MONTHS[lang][value];
+    }
+    if (Object.prototype.hasOwnProperty.call(SHORT_EXACT[lang], value)) return SHORT_EXACT[lang][value];
+    // Do not translate standalone abbreviations, numeric identifiers or Brazilian proper nouns.
+    if (/^[A-Z]{2}$/.test(value) || /^\d+$/.test(value)) return value;
+    let result = value;
+    for (const item of makeReplacements(lang)) result = result.replace(item.regex, item.newValue);
+    return result;
+  }
+  const GEO_KEYS = new Set(['geojson','locations','location','featureidkey','ids','id','uid','type','mode','colorscale','color','fillcolor','line','font','domain','projection','uirevision','key','source','legendgroup']);
+  function translatePlot(value, key, depth) {
+    if (lang === 'pt' || value == null || depth > 11) return value;
+    if (typeof value === 'string') {
+      if (GEO_KEYS.has(key) || (key === 'x' && !Object.prototype.hasOwnProperty.call(MONTHS[lang],value))) return value;
+      return translateText(value, {month: key === 'x' || key === 'tickvals' || key === 'categoryarray'});
+    }
+    if (typeof value !== 'object') return value;
+    if (ArrayBuffer.isView(value) || GEO_KEYS.has(key)) return value;
+    if (Array.isArray(value)) {
+      if (!value.length || typeof value[0] === 'number' || value.length > 10000) return value;
+      let changed = false;
+      const out = value.map(v => { const next = translatePlot(v, key, depth+1); if(next !== v) changed = true; return next; });
+      return changed ? out : value;
+    }
+    let changed = false;
+    const out = {};
+    for(const name of Object.keys(value)) {
+      const v = value[name];
+      const next = translatePlot(v, name, depth+1);
+      out[name] = next;
+      if (next !== v) changed = true;
+    }
+    return changed ? out : value;
+  }
+  function trackPlot(promise, element) {
+    if (element && element.classList) { element.classList.add('notranslate'); element.setAttribute('translate','no'); }
+    if (promise && typeof promise.then === 'function') {
+      const guarded = Promise.resolve(promise).catch(()=>{});
+      pendingPlots.add(guarded);
+      guarded.finally(() => pendingPlots.delete(guarded));
+    }
+    return promise;
+  }
+  function installPlotly() {
+    if (plottingInstalled || !window.Plotly || typeof Plotly.newPlot !== 'function') return;
+    plottingInstalled = true;
+    const origNew = Plotly.newPlot;
+    Plotly.newPlot = function(target, data, layout, config) {
+      const element = typeof target === 'string' ? document.getElementById(target) : target;
+      let d = data, l = layout;
+      if (lang !== 'pt') { d=translatePlot(data,'data',0); l=translatePlot(layout,'layout',0); }
+      const outcome = origNew.call(this,target,d,l,config);
+      return trackPlot(outcome,element);
+    };
+    if (typeof Plotly.react === 'function') {
+      const origReact = Plotly.react;
+      Plotly.react = function(target,data,layout,config) {
+        const element = typeof target === 'string' ? document.getElementById(target) : target;
+        const d = lang === 'pt' ? data : translatePlot(data,'data',0);
+        const l = lang === 'pt' ? layout : translatePlot(layout,'layout',0);
+        return trackPlot(origReact.call(this,target,d,l,config),element);
+      };
+    }
+  }
+  async function plotlySettled() {
+    for (let tries = 0; tries < 6; tries++) {
+      const batch = Array.from(pendingPlots);
+      if (!batch.length) { await afterFrame(); if (!pendingPlots.size) return; }
+      else await Promise.race([Promise.allSettled(batch),sleep(1700)]);
+    }
+  }
+
+  // Carefully reviewed, deterministic translations for original in-page UI
+  // labels. The external provider handles unrestricted narrative paragraphs.
+  // These keys are exact source-language labels, never location names or codes.
+  const UI_TEXT = {
+    en: {
+      'Início':'Home','Vigilância':'Surveillance','Sobre':'About','Contato':'Contact',
+      'Epidemiologia espaço-temporal dos acidentes ofídicos no Brasil':'Spatiotemporal epidemiology of snakebites in Brazil',
+      'Região':'Region','Todas':'All','Todos':'All','Município':'Municipality',
+      'Ano':'Year','Tipo de acidente':'Snakebite type',
+      'Botrópico · Bothrops':'Bothropic · Bothrops','Crotálico · Crotalus':'Crotalic · Crotalus',
+      'Laquético · Lachesis':'Lachetic · Lachesis','Elapídico · Micrurus':'Elapid · Micrurus',
+      '🧹 Limpar filtros':'🧹 Clear filters',
+      'Distribuição espacial dos acidentes por serpentes peçonhentas':'Spatial distribution of venomous snakebites',
+      'Mapa de calor por UF na seleção atual':'State-level heatmap for the current selection',
+      'Brasil inteiro':'All of Brazil','Série temporal anual':'Annual time series',
+      'Casos notificados e proporção de casos graves ao longo dos anos':'Reported cases and proportion of severe cases across years',
+      'Sazonalidade mensal':'Monthly seasonality',
+      'Distribuição mensal; a cor das barras representa a precipitação média da seleção':'Monthly distribution; bar colors represent mean rainfall in the selected area',
+      'Casos por sexo':'Cases by sex','Distribuição marginal':'Marginal distribution','Faixa etária':'Age group',
+      'Casos por grupo etário':'Cases by age group','Gravidade':'Severity','Classificação dos casos':'Case severity classification',
+      'Desfecho':'Outcome','Evolução dos casos':'Case outcomes','Tempo picada–atendimento':'Time from bite to care',
+      'Tempo até o primeiro atendimento':'Time to first healthcare attendance',
+      '🧾 Qualidade dos dados':'🧾 Data quality','💡 Principais achados':'💡 Key findings',
+      '🌦️ Sazonalidade climática e correlações exploratórias':'🌦️ Climate seasonality and exploratory correlations',
+      'Casos × precipitação':'Cases × rainfall','Barras de chuva e linha de casos por mês':'Monthly rainfall bars and case-count line',
+      'Casos × temperatura':'Cases × temperature','Tendência mensal da temperatura média':'Monthly mean-temperature pattern',
+      'Casos × umidade relativa':'Cases × relative humidity','Comportamento mensal da umidade do ar':'Monthly relative-humidity pattern',
+      'Painel sazonal integrado':'Integrated seasonal dashboard',
+      'Leitura mensal em estilo meteorológico: chuva, temperatura, umidade e notificações':'Monthly weather-style overview: rainfall, temperature, humidity and notifications',
+      'Interpretação:':'Interpretation:',
+      'as associações entre clima e notificações são ecológicas e exploratórias. Não expressam risco individual, causalidade ou previsão de acidentes. As séries meteorológicas possuem cobertura territorial variável.':'Associations between climate and notifications are ecological and exploratory. They do not indicate individual risk, causality or prediction of snakebites. Meteorological series have variable geographic coverage.',
+      '🍃 Qualidade do ar e acidentes ofídicos':'🍃 Air quality and snakebites',
+      'Casos × qualidade do ar (índice indicativo)':'Cases × air quality (indicative index)',
+      'Barras: número de casos por mês; cores: índice indicativo médio, comparado entre os meses selecionados.':'Bars: monthly case counts; colors: mean indicative air quality index compared across the selected months.',
+      'Casos × IQAr (índice indicativo de qualidade do ar)':'Cases × indicative air quality index',
+      'IQAr = índice parcial de qualidade do ar com MP₁₀, MP₂,₅ e SO₂; não representa uma classificação oficial mensal.':'The indicative index uses PM₁₀, PM₂.₅ and SO₂; it is not an official monthly air-quality classification.',
+      'Casos × MP₁₀ (material particulado inalável)':'Cases × PM₁₀ (inhalable particulate matter)',
+      'MP₁₀ = material particulado inalável · concentrações de reanálise e casos nos mesmos pares.':'PM₁₀ = inhalable particulate matter · reanalysis concentrations and cases from matched observations.',
+      'Casos × MP₂,₅ (material particulado fino)':'Cases × PM₂.₅ (fine particulate matter)',
+      'MP₂,₅ = material particulado fino · concentrações de reanálise e casos nos mesmos pares.':'PM₂.₅ = fine particulate matter · reanalysis concentrations and cases from matched observations.',
+      'Casos × O₃ (ozônio)':'Cases × O₃ (ozone)',
+      'O₃ = ozônio · concentrações de reanálise e casos nos mesmos pares.':'O₃ = ozone · reanalysis concentrations and cases from matched observations.',
+      'Casos × NO₂ (dióxido de nitrogênio)':'Cases × NO₂ (nitrogen dioxide)',
+      'NO₂ = dióxido de nitrogênio · concentrações de reanálise e casos nos mesmos pares.':'NO₂ = nitrogen dioxide · reanalysis concentrations and cases from matched observations.',
+      'Casos × CO (monóxido de carbono)':'Cases × CO (carbon monoxide)',
+      'CO = monóxido de carbono · concentrações de reanálise e casos nos mesmos pares.':'CO = carbon monoxide · reanalysis concentrations and cases from matched observations.',
+      'Casos × SO₂ (dióxido de enxofre)':'Cases × SO₂ (sulfur dioxide)',
+      'SO₂ = dióxido de enxofre · concentrações de reanálise e casos nos mesmos pares.':'SO₂ = sulfur dioxide · reanalysis concentrations and cases from matched observations.',
+      '🐍 Tipo de acidente · análise por grupo de serpentes':'🐍 Snakebite group: species-group analysis',
+      'Indicadores epidemiológicos nacionais e comparações climáticas para os quatro grupos de serpentes peçonhentas. Selecione um grupo abaixo para expandir sua análise, sem alterar os gráficos gerais.':'National epidemiological indicators and climate comparisons for the four venomous-snake groups. Select a group below to expand the analysis without changing the overview charts.',
+      'Botrópicos ·':'Bothropic ·','Crotálicos ·':'Crotalic ·','Laquéticos ·':'Lachetic ·','Elapídicos ·':'Elapid ·',
+      'Indicadores, evolução temporal, perfil clínico-epidemiológico e clima':'Indicators, time trends, clinical-epidemiological profile and climate',
+      '📚 Definições, entradas e fontes':'📚 Definitions, inputs and sources',
+      'Casos epidemiológicos:':'Epidemiological cases:',
+      'Variáveis incorporadas no painel:':'Variables included in the dashboard:',
+      'Clima e sazonalidade:':'Climate and seasonality:',
+      'Qualidade do ar:':'Air quality:','Base territorial:':'Geographic reference data:',
+      'Escopo:':'Scope:','Tipo de dado atual:':'Current data type:',
+      'Como interpretar os indicadores, percentuais e comparações?':'How should indicators, percentages and comparisons be interpreted?',
+      'Origem e período:':'Source and period:','Totais e percentuais:':'Totals and percentages:',
+      'Gravidade, desfecho e soroterapia:':'Severity, outcomes and antivenom:',
+      'Clima:':'Climate:','Qualidade do ar e poluentes:':'Air quality and pollutants:',
+      'Comparação com os acidentes ofídicos:':'Comparison with snakebite notifications:',
+      'Cobertura:':'Coverage:','Projeto SerpentIA:':'SerpentIA project:','Autoria:':'Authors:',
+      'Acessar SINAN/DATASUS ↗':'Visit SINAN/DATASUS ↗','Acessar BDMEP/INMET ↗':'Visit BDMEP/INMET ↗',
+      'Acessar SISAM/INPE ↗':'Visit SISAM/INPE ↗','Acessar malhas do IBGE ↗':'Visit IBGE maps ↗',
+      'Dados epidemiológicos: 2016–2025 ·':'Epidemiological data: 2016–2025 ·',
+      'Versão 2.8':'Version 2.8','© 2026 · Todos os direitos reservados.':'© 2026 · All rights reserved.',
+      'Esta ferramenta é apenas informativa.':'This tool is provided for informational purposes only.',
+      'Não substitui avaliação e atendimento por profissionais de saúde.':'It does not replace assessment or care by healthcare professionals.',
+      'Política de Privacidade':'Privacy Policy','Termos de Uso':'Terms of Use',
+      'sem comparação':'no comparison','acidentes por serpentes peçonhentas':'snakebites',
+      'pelo agravo notificado':'due to reported condition','óbitos/casos':'deaths/cases',
+      'do total':'of the total','dos casos':'of cases','Casos notificados':'Reported cases',
+      'Atendimento ≤ 3 h':'Healthcare attendance ≤ 3 h','Uso de soroterapia':'Antivenom use',
+      'Casos graves':'Severe cases','Óbitos':'Deaths','Letalidade':'Case fatality'
+    },
+    es: {
+      'Início':'Inicio','Vigilância':'Vigilancia','Sobre':'Acerca de','Contato':'Contacto',
+      'Epidemiologia espaço-temporal dos acidentes ofídicos no Brasil':'Epidemiología espaciotemporal de los accidentes ofídicos en Brasil',
+      'Região':'Región','Todas':'Todas','Todos':'Todos','Município':'Municipio',
+      'Ano':'Año','Tipo de acidente':'Tipo de accidente ofídico',
+      'Botrópico · Bothrops':'Botrópico · Bothrops','Crotálico · Crotalus':'Crotálico · Crotalus',
+      'Laquético · Lachesis':'Laquético · Lachesis','Elapídico · Micrurus':'Elapídico · Micrurus',
+      '🧹 Limpar filtros':'🧹 Limpiar filtros',
+      'Distribuição espacial dos acidentes por serpentes peçonhentas':'Distribución espacial de accidentes por serpientes venenosas',
+      'Mapa de calor por UF na seleção atual':'Mapa de calor por estado para la selección actual',
+      'Brasil inteiro':'Todo Brasil','Série temporal anual':'Serie temporal anual',
+      'Casos notificados e proporção de casos graves ao longo dos anos':'Casos notificados y proporción de casos graves a lo largo de los años',
+      'Sazonalidade mensal':'Estacionalidad mensual',
+      'Distribuição mensal; a cor das barras representa a precipitação média da seleção':'Distribución mensual; el color de las barras representa la precipitación media de la selección',
+      'Casos por sexo':'Casos por sexo','Distribuição marginal':'Distribución marginal','Faixa etária':'Grupo de edad',
+      'Casos por grupo etário':'Casos por grupo de edad','Gravidade':'Gravedad','Classificação dos casos':'Clasificación de la gravedad',
+      'Desfecho':'Desenlace','Evolução dos casos':'Evolución de los casos','Tempo picada–atendimento':'Tiempo desde la mordedura hasta la atención',
+      'Tempo até o primeiro atendimento':'Tiempo hasta la primera atención sanitaria',
+      '🧾 Qualidade dos dados':'🧾 Calidad de los datos','💡 Principais achados':'💡 Hallazgos principales',
+      '🌦️ Sazonalidade climática e correlações exploratórias':'🌦️ Estacionalidad climática y correlaciones exploratorias',
+      'Casos × precipitação':'Casos × precipitación','Barras de chuva e linha de casos por mês':'Barras de lluvia y línea de casos por mes',
+      'Casos × temperatura':'Casos × temperatura','Tendência mensal da temperatura média':'Tendencia mensual de temperatura media',
+      'Casos × umidade relativa':'Casos × humedad relativa','Comportamento mensal da umidade do ar':'Patrón mensual de humedad relativa',
+      'Painel sazonal integrado':'Panel estacional integrado',
+      'Leitura mensal em estilo meteorológico: chuva, temperatura, umidade e notificações':'Resumen meteorológico mensual: lluvia, temperatura, humedad y notificaciones',
+      'Interpretação:':'Interpretación:',
+      'as associações entre clima e notificações são ecológicas e exploratórias. Não expressam risco individual, causalidade ou previsão de acidentes. As séries meteorológicas possuem cobertura territorial variável.':'Las asociaciones entre el clima y las notificaciones son ecológicas y exploratorias. No indican riesgo individual, causalidad ni predicción de accidentes ofídicos. Las series meteorológicas tienen cobertura territorial variable.',
+      '🍃 Qualidade do ar e acidentes ofídicos':'🍃 Calidad del aire y accidentes ofídicos',
+      'Casos × qualidade do ar (índice indicativo)':'Casos × calidad del aire (índice indicativo)',
+      'Barras: número de casos por mês; cores: índice indicativo médio, comparado entre os meses selecionados.':'Barras: número de casos por mes; colores: índice indicativo medio comparado entre los meses seleccionados.',
+      'Casos × IQAr (índice indicativo de qualidade do ar)':'Casos × índice indicativo de calidad del aire',
+      'IQAr = índice parcial de qualidade do ar com MP₁₀, MP₂,₅ e SO₂; não representa uma classificação oficial mensal.':'El índice indicativo utiliza PM₁₀, PM₂.₅ y SO₂; no representa una clasificación oficial mensual de calidad del aire.',
+      'Casos × MP₁₀ (material particulado inalável)':'Casos × PM₁₀ (material particulado inhalable)',
+      'MP₁₀ = material particulado inalável · concentrações de reanálise e casos nos mesmos pares.':'PM₁₀ = material particulado inhalable · concentraciones de reanálisis y casos de observaciones emparejadas.',
+      'Casos × MP₂,₅ (material particulado fino)':'Casos × PM₂.₅ (material particulado fino)',
+      'MP₂,₅ = material particulado fino · concentrações de reanálise e casos nos mesmos pares.':'PM₂.₅ = material particulado fino · concentraciones de reanálisis y casos de observaciones emparejadas.',
+      'Casos × O₃ (ozônio)':'Casos × O₃ (ozono)',
+      'O₃ = ozônio · concentrações de reanálise e casos nos mesmos pares.':'O₃ = ozono · concentraciones de reanálisis y casos de observaciones emparejadas.',
+      'Casos × NO₂ (dióxido de nitrogênio)':'Casos × NO₂ (dióxido de nitrógeno)',
+      'NO₂ = dióxido de nitrogênio · concentrações de reanálise e casos nos mesmos pares.':'NO₂ = dióxido de nitrógeno · concentraciones de reanálisis y casos de observaciones emparejadas.',
+      'Casos × CO (monóxido de carbono)':'Casos × CO (monóxido de carbono)',
+      'CO = monóxido de carbono · concentrações de reanálise e casos nos mesmos pares.':'CO = monóxido de carbono · concentraciones de reanálisis y casos de observaciones emparejadas.',
+      'Casos × SO₂ (dióxido de enxofre)':'Casos × SO₂ (dióxido de azufre)',
+      'SO₂ = dióxido de enxofre · concentrações de reanálise e casos nos mesmos pares.':'SO₂ = dióxido de azufre · concentraciones de reanálisis y casos de observaciones emparejadas.',
+      '🐍 Tipo de acidente · análise por grupo de serpentes':'🐍 Tipo de accidente: análisis por grupo de serpientes',
+      'Indicadores epidemiológicos nacionais e comparações climáticas para os quatro grupos de serpentes peçonhentas. Selecione um grupo abaixo para expandir sua análise, sem alterar os gráficos gerais.':'Indicadores epidemiológicos nacionales y comparaciones climáticas para los cuatro grupos de serpientes venenosas. Seleccione un grupo para ampliar su análisis sin modificar los gráficos generales.',
+      'Botrópicos ·':'Botrópicos ·','Crotálicos ·':'Crotálicos ·','Laquéticos ·':'Laquéticos ·','Elapídicos ·':'Elapídicos ·',
+      'Indicadores, evolução temporal, perfil clínico-epidemiológico e clima':'Indicadores, tendencias temporales, perfil clínico-epidemiológico y clima',
+      '📚 Definições, entradas e fontes':'📚 Definiciones, datos y fuentes',
+      'Casos epidemiológicos:':'Casos epidemiológicos:',
+      'Variáveis incorporadas no painel:':'Variables incluidas en el panel:',
+      'Clima e sazonalidade:':'Clima y estacionalidad:',
+      'Qualidade do ar:':'Calidad del aire:','Base territorial:':'Datos geográficos de referencia:',
+      'Escopo:':'Alcance:','Tipo de dado atual:':'Tipo de datos actual:',
+      'Como interpretar os indicadores, percentuais e comparações?':'¿Cómo interpretar los indicadores, porcentajes y comparaciones?',
+      'Origem e período:':'Origen y período:','Totais e percentuais:':'Totales y porcentajes:',
+      'Gravidade, desfecho e soroterapia:':'Gravedad, desenlaces y antiveneno:',
+      'Clima:':'Clima:','Qualidade do ar e poluentes:':'Calidad del aire y contaminantes:',
+      'Comparação com os acidentes ofídicos:':'Comparación con los accidentes ofídicos:',
+      'Cobertura:':'Cobertura:','Projeto SerpentIA:':'Proyecto SerpentIA:','Autoria:':'Autoría:',
+      'Acessar SINAN/DATASUS ↗':'Consultar SINAN/DATASUS ↗','Acessar BDMEP/INMET ↗':'Consultar BDMEP/INMET ↗',
+      'Acessar SISAM/INPE ↗':'Consultar SISAM/INPE ↗','Acessar malhas do IBGE ↗':'Consultar mapas del IBGE ↗',
+      'Dados epidemiológicos: 2016–2025 ·':'Datos epidemiológicos: 2016–2025 ·',
+      'Versão 2.8':'Versión 2.8','© 2026 · Todos os direitos reservados.':'© 2026 · Todos los derechos reservados.',
+      'Esta ferramenta é apenas informativa.':'Esta herramienta es únicamente informativa.',
+      'Não substitui avaliação e atendimento por profissionais de saúde.':'No sustituye la evaluación ni la atención de profesionales de la salud.',
+      'Política de Privacidade':'Política de privacidad','Termos de Uso':'Términos de uso',
+      'sem comparação':'sin comparación','acidentes por serpentes peçonhentas':'accidentes por serpientes venenosas',
+      'pelo agravo notificado':'por el evento notificado','óbitos/casos':'muertes/casos',
+      'do total':'del total','dos casos':'de los casos','Casos notificados':'Casos notificados',
+      'Atendimento ≤ 3 h':'Atención sanitaria ≤ 3 h','Uso de soroterapia':'Uso de antiveneno',
+      'Casos graves':'Casos graves','Óbitos':'Muertes','Letalidade':'Letalidad'
+    }
+  };
+  // Replace exact static UI labels without relying on a delayed third-party
+  // translator. Generic body paragraphs still flow to GTranslate.
+  function nativeLabelText(node) {
+    if (!node || !node.parentElement || !UI_TEXT[lang]) return false;
+    const original=node.nodeValue, key=original.trim();
+    const translation=UI_TEXT[lang][key];
+    if (translation==null || translation===key) return false;
+    const parent=node.parentElement;
+    if (parent.closest('script,style,noscript,textarea,pre,code,.gtranslate_wrapper,[translate="no"],.notranslate,.js-plotly-plot')) return false;
+    node.nodeValue=original.replace(key,translation);
+    // The exact label is now localized. Avoid double-translating the label by
+    // the external provider, without excluding long neighboring paragraphs.
+    if (!Array.from(parent.childNodes).some(x => x.nodeType === 1 && x.tagName !== 'SVG' && x.tagName !== 'I')) {
+      parent.classList.add('notranslate');
+      parent.setAttribute('translate','no');
+    }
+    return true;
+  }
+  function localizeFilterOptions() {
+    if(lang==='pt')return;
+    for(const picker of document.querySelectorAll('select')){
+      for(const option of picker.options){
+        if(option.value !== 'all') continue;
+        const original=option.textContent.trim();
+        if(original === 'Todas' || original === 'Todos'){
+          option.textContent=lang==='en'?'All':(original==='Todas'?'Todas':'Todos');
+          option.setAttribute('translate','no');
+          option.classList.add('notranslate');
+        }
+      }
+    }
+  }
+  let optionScanQueued=false;
+  function queueOptionLocalize(){
+    if(optionScanQueued)return;
+    optionScanQueued=true;
+    requestAnimationFrame(()=>{optionScanQueued=false;localizeFilterOptions();});
+  }
+  function initNativePageLabels() {
+    if(lang==='pt' || !document.body)return;
+    const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
+    const nodes=[];
+    while(walker.nextNode()){
+      const node=walker.currentNode;
+      if(node.nodeValue.trim().length<500)nodes.push(node);
+    }
+    for(const node of nodes)nativeLabelText(node);
+    localizeFilterOptions();
+    document.documentElement.lang=lang==='en'?'en-US':lang==='es'?'es':'pt-BR';
+  }
+
+  // A very small local fallback for dynamically generated dashboard labels.
+  // GTranslate handles full prose after all initially visible content exists.
+  const DYNAMIC = '#kpis,#climateCards,#weatherBoard,#qualityRow,#findingGrid,#mapDesc,#mapTypeTitle,#mapPlot,#airSection,#typeOverview,#chartModal,[id^="type-detail-"]';
+  const trackedNodes = new Set();
+  let textScanQueued = false;
+  function localizeDynamicDOM(root) {
+    if (lang === 'pt' || !root) return;
+    const isExcluded = node => {
+      const p = node.parentElement;
+      return !p || p.closest('script,style,noscript,textarea,pre,code,.gtranslate_wrapper,[translate="no"],.notranslate,.js-plotly-plot');
+    };
+    const visit = el => {
+      if (!el || !el.nodeType) return;
+      if (el.nodeType === 3) {
+        if(isExcluded(el) || !el.textContent.trim() || el.textContent.length > 650) return;
+        const original=el.textContent;
+        if (nativeLabelText(el)) return;
+        const updated=translateText(original);
+        if (updated !== el.textContent) el.textContent = updated;
+        return;
+      }
+      if (el.nodeType !== 1 || el.matches('script,style,noscript,textarea,pre,code,.gtranslate_wrapper,[translate="no"],.notranslate,.js-plotly-plot')) return;
+      if (el.childNodes.length > 1200) return;
+      if (el.hasAttribute('title')) { const before=el.getAttribute('title');const after=translateText(before);if(after!==before)el.setAttribute('title',after); }
+      for(const child of Array.from(el.childNodes)) visit(child);
+    };
+    visit(root);
+  }
+  function queueTextScan(root) {
+    if (!root || lang === 'pt') return;
+    trackedNodes.add(root);
+    if (textScanQueued) return;
+    textScanQueued=true;
+    requestAnimationFrame(() => {
+      textScanQueued=false;
+      const batch=Array.from(trackedNodes); trackedNodes.clear();
+      for (const el of batch) if(el.isConnected) localizeDynamicDOM(el);
+    });
+  }
+  function initDOMObserver() {
+    if (lang === 'pt' || !isSurveillance) return;
+    for(const el of document.querySelectorAll(DYNAMIC)) queueTextScan(el);
+    const observer = new MutationObserver(mutations => {
+      // Re-scan only changed nodes. Re-scanning whole dashboards for every
+      // Plotly mutation caused significant unnecessary work in expanded views.
+      for(const record of mutations) {
+        const p = record.target.nodeType === 3 ? record.target.parentElement : record.target;
+        if(!p || !p.closest || p.closest('.gtranslate_wrapper,.notranslate,[translate="no"],.js-plotly-plot'))continue;
+        if(p.closest('#fUf,#fMun,#fRegion,#fYear,#fType')) queueOptionLocalize();
+        if(!p.closest(DYNAMIC)) continue;
+        if(record.type === 'characterData') { queueTextScan(p); continue; }
+        for(const node of record.addedNodes) {
+          if(node.nodeType === 1) {
+            if(!node.matches('script,style,.js-plotly-plot,[translate="no"],.notranslate')) queueTextScan(node);
+          } else if(node.nodeType === 3) queueTextScan(p);
+        }
+      }
+    });
+    // Observe frequently updated KPI/summary panels only; Plotly and expanded
+    // group dashboards produce thousands of SVG mutations and do not need it.
+    for(const sel of ['#kpis','#climateCards','#weatherBoard','#qualityRow','#findingGrid','#mapDesc','#mapTypeTitle','#fUf','#fMun','#fRegion','#fYear','#fType']){
+      const target=document.querySelector(sel);
+      if(target)observer.observe(target,{childList:true,subtree:true,characterData:true});
+    }
+
+  }
+
+  let providerRequested = false;
+  function loadTranslationProvider() {
+    if (lang === 'pt' || providerRequested || !/^https?:$/i.test(location.protocol)) return;
+    providerRequested=true;
+    const script=document.createElement('script');
+    script.src='https://cdn.gtranslate.net/widgets/latest/dropdown.js';
+    script.async=true;
+    script.setAttribute('data-serpentia-translator','deferred-until-dashboard-ready');
+    script.onerror=()=>{document.documentElement.dataset.serpentiaTranslationProvider='unavailable';};
+    script.onload=()=>{
+      document.documentElement.dataset.serpentiaTranslationProvider='loaded';
+      // The free CDN widget may lazy-load its actual translation engine only
+      // when its dropdown receives pointer/focus. Our accessible selector is
+      // independent of that hidden dropdown, so start the engine explicitly.
+      // This also avoids the provider's focus-event callback race in the CDN.
+      if (!window.gt_translate_script) {
+        const engine=document.createElement('script');
+        engine.src='https://cdn.gtranslate.net/widgets/latest/lib.min.js';
+        engine.async=true;
+        window.gt_translate_script=engine;
+        engine.onload=()=>{
+          document.documentElement.dataset.serpentiaTranslationEngine='loaded';
+          // Some widget builds consume the googtrans cookie automatically;
+          // others require one explicit language command at initialization.
+          // Both paths use the same language chosen in the header.
+          if (typeof window.doGTranslate === 'function') {
+            try { window.doGTranslate('pt|' + lang); } catch (error) { console.warn('SerpentIA translation engine:',error); }
+          }
+        };
+        engine.onerror=()=>{document.documentElement.dataset.serpentiaTranslationEngine='unavailable';};
+        document.body.appendChild(engine);
+      }
+    };
+    document.body.appendChild(script);
+  }
+  async function startTranslation() {
+    if (lang === 'pt') return;
+    if (isSurveillance) {
+      await Promise.all([waitReady('dashboard',18000),waitReady('air',18000)]);
+      await plotlySettled();
+    } else await afterFrame();
+    await afterFrame();
+    if (isSurveillance) window.SerpentIAI18n.refreshGenerated();
+    localizeFilterOptions();
+    await afterFrame();
+    // One normal selector change stores the language and reloads once.  The
+    // initial translation is now activated only after the entire visible DOM
+    // and Plotly SVG content have been built, instead of halfway through.
+    loadTranslationProvider();
+  }
+  function initControls() {
+    const picker=document.querySelector('.serpentia-language-fallback');
+    if (!picker) return;
+    picker.value=lang;
+    picker.setAttribute('aria-label','Idioma / Language / Idioma');
+    picker.addEventListener('change',function(){
+      const target = this.value;
+      if (!VALID.has(target) || target === lang) return;
+      storageSet(target);
+      setGoogleCookie(target);
+      this.disabled=true;
+      // Changing language is a single action. A clean page reload guarantees
+      // that translated Plotly text is generated for the selected language.
+      location.reload();
+    });
+    const name = picker.closest('.serpentia-language-switcher');
+    if (name) name.setAttribute('title','Português (Brasil) / English (US) / Español');
+    const caption=document.querySelector('.serpentia-language-caption span');
+    if(caption) caption.textContent=lang==='en'?'Language':lang==='es'?'Idioma':'Idioma';
+    const reminder=document.querySelector('.serpentia-translation-status');
+    if(reminder) reminder.textContent=LANG_NAMES[lang];
+  }
+  window.gtranslateSettings = {
+    default_language: 'pt', languages: ['pt','en','es'], native_language_names: true,
+    detect_browser_language: false, wrapper_selector: '.gtranslate_wrapper',
+    alt_flags: {pt:'brazil',en:'usa',es:'spain'}
+  };
+  window.SerpentIAI18n = {
+    version:3, language:lang, translateChartText:translateText, localizePlotly:translatePlot,
+    installPlotly, chartPending:pendingPlots, dashboardReady:()=>ready('dashboard'),
+    airReady:()=>ready('air'), readyFlags:()=>({dashboard:hasRenderedDashboard,air:hasRenderedAir,pending:pendingPlots.size}), refreshGenerated:()=>{
+      if(lang==='pt')return;
+      for(const el of document.querySelectorAll(DYNAMIC))queueTextScan(el);
+      localizeFilterOptions();
+    }
+  };
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{initControls();initNativePageLabels();initDOMObserver();startTranslation();},{once:true});
+  else {initControls();initNativePageLabels();initDOMObserver();startTranslation();}
+})();
+
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/><meta name="theme-color" content="#12794f"/><title>Sobre o Projeto SerpentIA</title><style>
 :root{--green:#12794f;--green2:#2da36f;--greenSoft:#eaf7f0;--orange:#f29b2b;--orangeSoft:#fff5e6;--blue:#1f89bd;--blueSoft:#edf8fd;--red:#e3242b;--ink:#14312a;--muted:#60756e;--line:#dbe9e2;--card:#fff;--shadow:0 12px 30px rgba(15,75,54,.08)}
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;color:var(--ink);background:linear-gradient(180deg,#fff 0%,#f7fbf9 68%,#eef7f2 100%)}a{color:inherit;text-decoration:none}button{font:inherit}.shell{max-width:1680px;margin:0 auto;background:#fff;min-height:100vh;overflow:hidden;box-shadow:0 0 0 1px rgba(219,233,226,.6)}
 .site-header{padding:8px 34px 0;background:linear-gradient(180deg,#fff 0%,rgba(255,255,255,.96) 70%,rgba(245,251,248,.96) 100%);position:relative;z-index:5}.site-header .navbar{display:flex;align-items:center;justify-content:space-between;gap:22px}.site-header .brand img{height:54px;width:auto;display:block}.site-header .nav{display:flex;gap:24px;align-items:center;flex-wrap:wrap;font-size:14px}.site-header .nav a{padding:10px 4px;border-bottom:2px solid transparent}.site-header .nav a.active{color:var(--green);font-weight:800;border-color:var(--green)}
@@ -277,6 +1006,29 @@
 @media print{.site-header .serpentia-language-switcher{display:none!important}}
 </style>
 
+
+<style id="serpentia-i18n-v3-styles">
+/* A single always-visible selector: translations are applied after page initialization. */
+.serpentia-language-switcher .serpentia-language-fallback,
+.site-header .nav .serpentia-language-switcher .serpentia-language-fallback,
+.hero .nav .serpentia-language-switcher .serpentia-language-fallback,
+.serpentia-language-switcher .gtranslate_wrapper:not(:empty) ~ .serpentia-language-fallback,
+.site-header .nav .serpentia-language-switcher .gtranslate_wrapper:not(:empty) ~ .serpentia-language-fallback {
+ display:inline-block!important; position:static!important; min-width:136px;max-width:180px;
+ cursor:pointer; border:1px solid #c8dfd3;border-radius:8px;padding:6px 8px;
+ color:#214a3b;background:#fff;visibility:visible!important;opacity:1!important;
+}
+/* Keep provider mount in DOM but not in the visible navigation. */
+.serpentia-language-switcher .gtranslate_wrapper {
+ position:absolute!important; left:-99999px!important; width:1px!important;
+ height:1px!important; overflow:hidden!important; opacity:0!important;
+ pointer-events:none!important;z-index:-1!important;
+}
+.serpentia-language-switcher .gtranslate_wrapper .gt_selector {
+ position:static!important;visibility:visible!important;
+}
+@media(max-width:520px){.serpentia-language-switcher .serpentia-language-fallback{min-width:112px!important;max-width:132px!important;padding:5px!important}}
+</style>
 </head>
 <body><div class="shell"><header class="site-header">
 <div class="navbar">
@@ -571,46 +1323,7 @@
 </script>
 <!-- /SerpentIA: geographic name protection -->
 <!-- SerpentIA: automatic website translation (PT-BR -> EN/ES). External service requires internet access. -->
-<script id="serpentia-gtranslate-settings">
-window.gtranslateSettings = {
-  default_language: 'pt',
-  languages: ['pt', 'en', 'es'],
-  native_language_names: true,
-  detect_browser_language: false,
-  wrapper_selector: '.gtranslate_wrapper',
-  alt_flags: {pt: 'brazil', en: 'usa', es: 'spain'}
-};
-</script>
-<script src="https://cdn.gtranslate.net/widgets/latest/dropdown.js" defer></script>
-<script id="serpentia-translation-fallback">
-/* Fallback operates only when the translation provider's dropdown cannot load.
-   Translated pages are external and must not be used to replace official clinical guidance.
-   The native GTranslate dropdown retains the selected language on this domain. */
-(function(){
-  function setup(){
-    var picker = document.querySelector('.serpentia-language-fallback');
-    if(!picker) return;
-    picker.addEventListener('change', function(){
-      var lang = picker.value;
-      if(lang === 'pt') return;
-      var url = window.location.href;
-      if(/^https?:/i.test(url)){
-        var note = lang === 'en'
-          ? 'Automatic translation is provided by an external service and may contain errors. Do not enter identifiable patient information. Continue?'
-          : 'La traducción automática es proporcionada por un servicio externo y puede contener errores. No introduzca datos identificables de pacientes. ¿Continuar?';
-        if(window.confirm(note)){
-          window.location.assign('https://translate.google.com/translate?sl=pt&tl=' + encodeURIComponent(lang) + '&u=' + encodeURIComponent(url));
-        }else{picker.value='pt';}
-      }else{
-        window.alert('A tradução automática requer abrir este site por HTTP(S), com acesso à internet. / Online translation requires an internet connection.');
-        picker.value='pt';
-      }
-    });
-  }
-  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setup);
-  else setup();
-})();
-</script>
+
 <!-- /SerpentIA: translation -->
 
 </body></html>
